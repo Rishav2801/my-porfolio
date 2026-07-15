@@ -1,0 +1,11 @@
+Add Rishav's profile photo in this folder with this exact filename:
+
+rishav-profile.jpg
+
+Recommended image:
+- Portrait orientation
+- Minimum 800 x 1000 px
+- Face centered near the upper-middle
+- JPG format
+
+The website already includes a fallback placeholder, so it will still open before the photo is added.
