@@ -1,0 +1,2398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#090b12" />
+  <meta name="description" content="Rishav Mishra's immersive 3D portfolio house — data, AI/ML, analytics and full-stack projects." />
+  <title>Rishav Portfolio House | 3D Experience</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+  <style>
+    :root {
+      --ink: #090b12;
+      --paper: #f5efe3;
+      --cream: #e8d9bf;
+      --gold: #d9a441;
+      --orange: #ff7a45;
+      --blue: #6bc4ff;
+      --violet: #9d7bff;
+      --mint: #73e0bd;
+      --text: #f7f4ee;
+      --muted: #b8bdca;
+      --glass: rgba(16, 20, 31, 0.72);
+      --line: rgba(255, 255, 255, 0.14);
+      --room-count: 6;
+      --progress: 0;
+      --room-progress: 0;
+      --track-x: 0vw;
+      --ambient-x: 50%;
+      --ambient-y: 38%;
+      --hero-x: 0px;
+      --hero-y: 0px;
+      --house-rx: -7deg;
+      --house-ry: -14deg;
+      --panel-x: 0px;
+      --panel-y: 0px;
+      --panel-ry: 0deg;
+      --gallery-rx: 0deg;
+      --gallery-ry: 0deg;
+      --model-rx: 0deg;
+      --model-ry: 0deg;
+      --model-ry-plus: 14deg;
+      --core-rotation: 0deg;
+      --lounge-rx: 0deg;
+      --lounge-ry: 0deg;
+      --mx: 0;
+      --my: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--gold) #0b0d14;
+    }
+
+    body {
+      min-height: 600vh;
+      overflow-x: hidden;
+      background: #080a10;
+      color: var(--text);
+      font-family: "Manrope", sans-serif;
+      line-height: 1.5;
+    }
+
+    body::-webkit-scrollbar { width: 10px; }
+    body::-webkit-scrollbar-track { background: #0b0d14; }
+    body::-webkit-scrollbar-thumb {
+      border: 2px solid #0b0d14;
+      border-radius: 20px;
+      background: linear-gradient(var(--gold), var(--orange));
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; }
+
+    ::selection {
+      color: #11131a;
+      background: #f3c55d;
+    }
+
+    .noise {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      pointer-events: none;
+      opacity: 0.055;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+    }
+
+    .ambient-glow {
+      position: fixed;
+      inset: -25%;
+      z-index: -3;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at var(--ambient-x) var(--ambient-y), rgba(217, 164, 65, 0.15), transparent 28%),
+        radial-gradient(circle at 78% 12%, rgba(107, 196, 255, 0.12), transparent 26%),
+        #080a10;
+    }
+
+    .cursor-dot,
+    .cursor-ring {
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 120;
+      pointer-events: none;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+    }
+
+    .cursor-dot {
+      width: 7px;
+      height: 7px;
+      background: #ffe8a4;
+      box-shadow: 0 0 24px rgba(255, 215, 112, 0.95);
+    }
+
+    .cursor-ring {
+      width: 38px;
+      height: 38px;
+      border: 1px solid rgba(255, 232, 164, 0.72);
+      transition: width .22s ease, height .22s ease, background .22s ease, border .22s ease;
+    }
+
+    .cursor-ring.is-hovering {
+      width: 58px;
+      height: 58px;
+      border-color: rgba(255,255,255,.24);
+      background: rgba(255,255,255,.08);
+      backdrop-filter: blur(4px);
+    }
+
+    .loader {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: grid;
+      place-items: center;
+      background: #080a10;
+      transition: opacity .7s ease, visibility .7s ease;
+    }
+
+    .loader.is-hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .loader-house {
+      width: min(330px, 76vw);
+      text-align: center;
+    }
+
+    .loader-roof {
+      width: 118px;
+      height: 118px;
+      margin: 0 auto -48px;
+      border: 2px solid rgba(255,255,255,.4);
+      border-right-color: var(--gold);
+      border-bottom-color: var(--gold);
+      transform: rotate(45deg);
+      animation: roofPulse 1.35s ease-in-out infinite;
+    }
+
+    .loader-body {
+      position: relative;
+      width: 184px;
+      height: 116px;
+      margin: 0 auto 30px;
+      border: 1px solid rgba(255,255,255,.22);
+      background: linear-gradient(145deg, #171b25, #0c0f17);
+      box-shadow: 0 32px 80px rgba(0,0,0,.5);
+    }
+
+    .loader-door {
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      width: 48px;
+      height: 74px;
+      transform: translateX(-50%);
+      border: 1px solid rgba(255,255,255,.2);
+      background: linear-gradient(90deg, #2f2318, #7a542b);
+      transform-origin: left center;
+      animation: doorOpen 1.6s ease-in-out infinite;
+    }
+
+    .loader h2 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(24px, 5vw, 36px);
+      letter-spacing: -.05em;
+    }
+
+    .loader p {
+      margin-top: 8px;
+      color: #aeb5c3;
+      font-size: 13px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    @keyframes roofPulse {
+      50% { transform: rotate(45deg) translate(-4px, -4px); filter: drop-shadow(0 0 20px rgba(217,164,65,.46)); }
+    }
+
+    @keyframes doorOpen {
+      40%, 60% { transform: translateX(-50%) perspective(420px) rotateY(-58deg); }
+    }
+
+    .topbar {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 90;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 18px clamp(18px, 3vw, 48px);
+      background: linear-gradient(to bottom, rgba(5,7,12,.9), rgba(5,7,12,.4), transparent);
+      pointer-events: none;
+    }
+
+    .brand,
+    .top-actions,
+    .room-nav {
+      pointer-events: auto;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      min-width: max-content;
+    }
+
+    .brand-cube {
+      position: relative;
+      width: 42px;
+      height: 42px;
+      transform-style: preserve-3d;
+      transform: rotateX(-18deg) rotateY(34deg);
+      animation: cubeFloat 5s ease-in-out infinite;
+    }
+
+    .brand-cube span {
+      position: absolute;
+      inset: 6px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.25);
+      background: linear-gradient(145deg, rgba(217,164,65,.92), rgba(255,122,69,.78));
+      color: #11131a;
+      font-family: "Space Grotesk", sans-serif;
+      font-weight: 800;
+      font-size: 12px;
+      box-shadow: 0 14px 36px rgba(217,164,65,.24);
+    }
+
+    @keyframes cubeFloat {
+      50% { transform: translateY(-4px) rotateX(-18deg) rotateY(394deg); }
+    }
+
+    .brand-copy strong {
+      display: block;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 15px;
+      letter-spacing: -.02em;
+    }
+
+    .brand-copy small {
+      display: block;
+      color: #9ca3b2;
+      font-size: 10px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .room-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 999px;
+      background: rgba(12,15,23,.58);
+      box-shadow: 0 14px 40px rgba(0,0,0,.26);
+      backdrop-filter: blur(18px);
+    }
+
+    .room-nav button {
+      position: relative;
+      width: 34px;
+      height: 34px;
+      border: 0;
+      border-radius: 50%;
+      color: #9da5b4;
+      background: transparent;
+      cursor: pointer;
+      transition: .25s ease;
+    }
+
+    .room-nav button::after {
+      content: attr(data-label);
+      position: absolute;
+      left: 50%;
+      top: calc(100% + 12px);
+      padding: 7px 10px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 9px;
+      color: white;
+      background: rgba(9,11,18,.9);
+      font-size: 10px;
+      letter-spacing: .08em;
+      white-space: nowrap;
+      opacity: 0;
+      transform: translate(-50%, -6px);
+      pointer-events: none;
+      transition: .2s ease;
+    }
+
+    .room-nav button:hover::after { opacity: 1; transform: translate(-50%, 0); }
+    .room-nav button:hover { color: white; background: rgba(255,255,255,.08); }
+    .room-nav button.is-active {
+      color: #16130b;
+      background: linear-gradient(145deg, #ffe188, var(--gold));
+      box-shadow: 0 0 24px rgba(217,164,65,.32);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .mini-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 42px;
+      padding: 0 15px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 14px;
+      color: white;
+      background: rgba(12,15,23,.62);
+      cursor: pointer;
+      box-shadow: 0 14px 38px rgba(0,0,0,.22);
+      backdrop-filter: blur(16px);
+      transition: transform .24s ease, border-color .24s ease, background .24s ease;
+    }
+
+    .mini-btn:hover {
+      transform: translateY(-3px);
+      border-color: rgba(255,255,255,.3);
+      background: rgba(255,255,255,.1);
+    }
+
+    .mini-btn.accent {
+      color: #15130e;
+      border-color: transparent;
+      background: linear-gradient(145deg, #ffe08a, var(--gold));
+      font-weight: 800;
+    }
+
+    .progress-line {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 100;
+      height: 3px;
+      transform-origin: left center;
+      transform: scaleX(var(--progress));
+      background: linear-gradient(90deg, var(--gold), var(--orange), var(--blue), var(--violet));
+      box-shadow: 0 0 18px rgba(255, 184, 79, .7);
+    }
+
+    .stage {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      overflow: hidden;
+      perspective: 1500px;
+      background: #080a10;
+    }
+
+    .track {
+      display: flex;
+      width: 600vw;
+      height: 100%;
+      will-change: transform;
+      transform: translate3d(var(--track-x), 0, 0);
+    }
+
+    .room {
+      position: relative;
+      isolation: isolate;
+      flex: 0 0 100vw;
+      height: 100vh;
+      overflow: hidden;
+      transform-style: preserve-3d;
+      background: var(--room-bg, #10131c);
+    }
+
+    .room::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -8;
+      background:
+        radial-gradient(circle at 20% 18%, var(--room-glow, rgba(217,164,65,.14)), transparent 28%),
+        radial-gradient(circle at 82% 74%, rgba(255,255,255,.06), transparent 22%),
+        linear-gradient(115deg, rgba(255,255,255,.025), transparent 50%);
+    }
+
+    .room::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 40;
+      pointer-events: none;
+      background: linear-gradient(90deg, rgba(0,0,0,.36), transparent 12%, transparent 88%, rgba(0,0,0,.36));
+      mix-blend-mode: multiply;
+    }
+
+    .architecture {
+      position: absolute;
+      inset: 0;
+      z-index: -5;
+      pointer-events: none;
+      perspective: 1100px;
+      transform-style: preserve-3d;
+    }
+
+    .back-wall {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px),
+        linear-gradient(145deg, rgba(255,255,255,.035), rgba(0,0,0,.14));
+      background-size: 64px 64px, 64px 64px, auto;
+      transform: translateZ(-140px) scale(1.18);
+    }
+
+    .left-wall,
+    .right-wall {
+      position: absolute;
+      top: -8%;
+      bottom: -8%;
+      width: 25vw;
+      opacity: .6;
+      background: linear-gradient(90deg, rgba(255,255,255,.08), rgba(0,0,0,.36));
+    }
+
+    .left-wall {
+      left: -11vw;
+      transform-origin: right center;
+      transform: rotateY(62deg);
+    }
+
+    .right-wall {
+      right: -11vw;
+      transform-origin: left center;
+      transform: rotateY(-62deg) scaleX(-1);
+    }
+
+    .ceiling {
+      position: absolute;
+      left: -10%;
+      right: -10%;
+      top: -45vh;
+      height: 70vh;
+      transform-origin: bottom center;
+      transform: rotateX(-62deg);
+      background: linear-gradient(to bottom, rgba(255,255,255,.08), rgba(0,0,0,.35));
+      opacity: .45;
+    }
+
+    .floor {
+      position: absolute;
+      left: -20%;
+      right: -20%;
+      bottom: -44vh;
+      height: 72vh;
+      transform-origin: top center;
+      transform: rotateX(62deg);
+      background:
+        linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px),
+        linear-gradient(to bottom, #242029, #08090e);
+      background-size: 90px 90px, 90px 90px, auto;
+      box-shadow: inset 0 50px 80px rgba(0,0,0,.28);
+    }
+
+    .ceiling-light {
+      position: absolute;
+      left: 50%;
+      top: 10%;
+      width: min(560px, 52vw);
+      height: 80px;
+      transform: translateX(-50%) perspective(500px) rotateX(62deg);
+      border-radius: 50%;
+      background: rgba(255,235,186,.13);
+      filter: blur(18px);
+      box-shadow: 0 22px 120px rgba(255, 211, 125, .18);
+    }
+
+    .dust {
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .dust span {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: rgba(255,238,195,.58);
+      box-shadow: 0 0 12px rgba(255,226,160,.6);
+      animation: dustMove var(--d, 8s) linear infinite;
+      animation-delay: var(--delay, 0s);
+    }
+
+    @keyframes dustMove {
+      from { transform: translate3d(0, 20px, 0); opacity: 0; }
+      20% { opacity: .8; }
+      to { transform: translate3d(80px, -130px, 0); opacity: 0; }
+    }
+
+    .room-inner {
+      position: relative;
+      z-index: 5;
+      display: grid;
+      align-items: center;
+      width: min(1440px, calc(100% - clamp(32px, 8vw, 150px)));
+      height: 100%;
+      margin: auto;
+      padding: 100px 0 58px;
+    }
+
+    .room-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      width: max-content;
+      margin-bottom: 18px;
+      padding: 8px 12px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 999px;
+      color: #dce2ed;
+      background: rgba(7,9,15,.36);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      backdrop-filter: blur(14px);
+    }
+
+    .room-kicker span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--room-accent, var(--gold));
+      box-shadow: 0 0 0 7px color-mix(in srgb, var(--room-accent, var(--gold)) 16%, transparent);
+    }
+
+    .display-title {
+      max-width: 900px;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(54px, 8.1vw, 132px);
+      line-height: .86;
+      letter-spacing: -.075em;
+      text-wrap: balance;
+      text-shadow: 0 26px 70px rgba(0,0,0,.35);
+    }
+
+    .display-title .accent-word {
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(255,255,255,.64);
+      background: linear-gradient(135deg, #fff4cf, var(--room-accent, var(--gold)) 72%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .lead {
+      max-width: 720px;
+      margin-top: 26px;
+      color: #c8ced9;
+      font-size: clamp(16px, 1.5vw, 21px);
+      line-height: 1.75;
+    }
+
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 30px;
+    }
+
+    .btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 51px;
+      padding: 0 20px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 16px;
+      color: white;
+      background: rgba(255,255,255,.06);
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: .02em;
+      backdrop-filter: blur(16px);
+      transform-style: preserve-3d;
+      transition: transform .28s ease, border-color .28s ease, background .28s ease, box-shadow .28s ease;
+    }
+
+    .btn::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.32), transparent 70%);
+      transform: translateX(-120%);
+      transition: transform .7s ease;
+    }
+
+    .btn:hover::before { transform: translateX(120%); }
+    .btn:hover {
+      transform: translateY(-5px) translateZ(22px);
+      border-color: rgba(255,255,255,.34);
+      box-shadow: 0 20px 45px rgba(0,0,0,.24);
+    }
+
+    .btn.primary {
+      color: #17140d;
+      border-color: transparent;
+      background: linear-gradient(145deg, #ffe499, var(--room-accent, var(--gold)));
+      box-shadow: 0 18px 46px color-mix(in srgb, var(--room-accent, var(--gold)) 24%, transparent);
+    }
+
+    .scroll-hint {
+      position: absolute;
+      right: clamp(24px, 4vw, 64px);
+      bottom: 32px;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      color: rgba(255,255,255,.62);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+
+    .mouse {
+      position: relative;
+      width: 27px;
+      height: 42px;
+      border: 1px solid rgba(255,255,255,.36);
+      border-radius: 20px;
+    }
+
+    .mouse::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 8px;
+      width: 3px;
+      height: 8px;
+      border-radius: 3px;
+      background: #ffe08a;
+      transform: translateX(-50%);
+      animation: wheel 1.6s ease-in-out infinite;
+    }
+
+    @keyframes wheel {
+      70%, 100% { transform: translate(-50%, 13px); opacity: 0; }
+    }
+
+    /* ROOM 1 — EXTERIOR */
+    .room-home {
+      --room-bg: #0b1018;
+      --room-glow: rgba(255, 156, 74, .17);
+      --room-accent: #ffb44e;
+    }
+
+    .room-home .room-inner {
+      grid-template-columns: minmax(0, 1.04fr) minmax(430px, .96fr);
+      gap: clamp(36px, 6vw, 100px);
+    }
+
+    .hero-copy {
+      transform: translate3d(var(--hero-x), var(--hero-y), 40px);
+      transition: transform .15s linear;
+    }
+
+    .house-exterior {
+      position: relative;
+      width: min(650px, 45vw);
+      aspect-ratio: 1.08 / 1;
+      justify-self: end;
+      transform-style: preserve-3d;
+      transform: perspective(1100px) rotateX(var(--house-rx)) rotateY(var(--house-ry)) translateZ(30px);
+      transition: transform .15s linear;
+      filter: drop-shadow(0 60px 70px rgba(0,0,0,.46));
+    }
+
+    .house-face {
+      position: absolute;
+      inset: 23% 4% 4%;
+      border: 1px solid rgba(255,255,255,.2);
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px),
+        linear-gradient(#1a202c, #10141d);
+      background-size: 32px 100%, auto;
+      box-shadow: inset 0 -40px 70px rgba(0,0,0,.28), 0 60px 100px rgba(0,0,0,.4);
+    }
+
+    .house-roof {
+      position: absolute;
+      left: 13%;
+      top: 3%;
+      width: 74%;
+      height: 57%;
+      border-top: 2px solid rgba(255,218,143,.72);
+      border-left: 2px solid rgba(255,218,143,.38);
+      background:
+        repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 2px, transparent 2px 36px),
+        linear-gradient(135deg, #2e1e19, #8c4b2b 56%, #2e1e19);
+      clip-path: polygon(50% 0, 100% 100%, 0 100%);
+      transform: translateZ(55px);
+      filter: drop-shadow(0 34px 40px rgba(0,0,0,.34));
+    }
+
+    .house-sign {
+      position: absolute;
+      left: 50%;
+      top: 29%;
+      z-index: 5;
+      width: max-content;
+      padding: 10px 18px;
+      transform: translateX(-50%) translateZ(80px);
+      border: 1px solid rgba(255,231,180,.34);
+      border-radius: 999px;
+      color: #ffe9af;
+      background: rgba(6,8,13,.72);
+      box-shadow: 0 18px 40px rgba(0,0,0,.28), inset 0 0 22px rgba(255,196,86,.05);
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(12px, 1.3vw, 18px);
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      backdrop-filter: blur(10px);
+    }
+
+    .portrait-window {
+      position: absolute;
+      left: 11%;
+      top: 46%;
+      z-index: 4;
+      width: 31%;
+      aspect-ratio: 1 / 1.12;
+      padding: 8px;
+      border: 2px solid #ad7c3d;
+      background: #202734;
+      box-shadow: inset 0 0 0 5px #0a0d14, 0 25px 45px rgba(0,0,0,.35);
+      transform: translateZ(58px);
+    }
+
+    .portrait-window::after {
+      content: "YOUR PHOTO";
+      position: absolute;
+      left: 50%;
+      bottom: 10px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      color: #fff;
+      background: rgba(0,0,0,.65);
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      transform: translateX(-50%);
+      white-space: nowrap;
+    }
+
+    .portrait-window img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: center top;
+      background: linear-gradient(145deg, #d7bd91, #252b37);
+    }
+
+    .front-door {
+      position: absolute;
+      right: 13%;
+      bottom: 4%;
+      z-index: 5;
+      width: 25%;
+      height: 46%;
+      border: 7px solid #0a0d14;
+      border-bottom: 0;
+      background: linear-gradient(90deg, #573a23, #a66a35 48%, #4b2e1d);
+      transform-origin: left center;
+      transform: perspective(700px) rotateY(var(--door-angle, -10deg)) translateZ(60px);
+      box-shadow: 0 22px 48px rgba(0,0,0,.36), inset 0 0 0 1px rgba(255,255,255,.16);
+    }
+
+    .front-door::before {
+      content: "ENTER";
+      position: absolute;
+      left: 50%;
+      top: 18%;
+      transform: translateX(-50%);
+      color: #f8deb5;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .2em;
+    }
+
+    .front-door::after {
+      content: "";
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #ffe19b;
+      box-shadow: 0 0 12px rgba(255,225,155,.9);
+    }
+
+    .house-step {
+      position: absolute;
+      right: 9%;
+      bottom: 0;
+      width: 34%;
+      height: 6%;
+      transform: translateZ(32px) skewX(-18deg);
+      background: linear-gradient(#4b4e55, #1a1c22);
+      box-shadow: 0 16px 24px rgba(0,0,0,.3);
+    }
+
+    .tree {
+      position: absolute;
+      bottom: 5%;
+      width: 7%;
+      height: 33%;
+      border-radius: 60% 60% 15% 15%;
+      background: linear-gradient(90deg, #1b4c37, #3b8b59, #123527);
+      box-shadow: 0 22px 40px rgba(0,0,0,.3);
+      transform: translateZ(15px);
+    }
+
+    .tree::after {
+      content: "";
+      position: absolute;
+      left: 42%;
+      bottom: -18%;
+      width: 20%;
+      height: 28%;
+      background: #5d3b24;
+    }
+
+    .tree.one { left: -1%; transform: translateZ(8px) rotate(-4deg); }
+    .tree.two { right: -1%; height: 28%; transform: translateZ(8px) rotate(5deg); }
+
+    /* ROOM 2 — ABOUT */
+    .room-about {
+      --room-bg: #11151d;
+      --room-glow: rgba(107,196,255,.16);
+      --room-accent: #6bc4ff;
+    }
+
+    .room-about .room-inner {
+      grid-template-columns: minmax(360px, .78fr) minmax(0, 1.22fr);
+      gap: clamp(36px, 6vw, 100px);
+    }
+
+    .study-scene {
+      position: relative;
+      align-self: end;
+      height: min(620px, 69vh);
+      perspective: 1000px;
+      transform-style: preserve-3d;
+    }
+
+    .study-window {
+      position: absolute;
+      left: 8%;
+      top: 2%;
+      width: 70%;
+      height: 45%;
+      overflow: hidden;
+      border: 12px solid #1d212a;
+      background:
+        radial-gradient(circle at 70% 28%, #f5dc9c 0 4%, transparent 5%),
+        linear-gradient(#26405c 0 56%, #b16645 57% 68%, #171922 69%);
+      box-shadow: 0 30px 70px rgba(0,0,0,.36), inset 0 0 0 1px rgba(255,255,255,.18);
+      transform: translateZ(35px) rotateY(6deg);
+    }
+
+    .study-window::before,
+    .study-window::after {
+      content: "";
+      position: absolute;
+      background: #1d212a;
+    }
+
+    .study-window::before { left: 50%; top: 0; bottom: 0; width: 8px; }
+    .study-window::after { left: 0; right: 0; top: 52%; height: 8px; }
+
+    .desk {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 11%;
+      height: 20%;
+      border-radius: 9px 9px 4px 4px;
+      background: linear-gradient(90deg, #4f3320, #a46c39 50%, #4a2e1c);
+      box-shadow: 0 24px 42px rgba(0,0,0,.42), inset 0 2px 0 rgba(255,255,255,.16);
+      transform: perspective(900px) rotateX(7deg) rotateY(-5deg) translateZ(60px);
+    }
+
+    .desk::before,
+    .desk::after {
+      content: "";
+      position: absolute;
+      top: 90%;
+      width: 10%;
+      height: 92%;
+      background: linear-gradient(90deg, #2a1a11, #5c3a24);
+    }
+
+    .desk::before { left: 8%; }
+    .desk::after { right: 8%; }
+
+    .monitor {
+      position: absolute;
+      left: 26%;
+      bottom: 27%;
+      z-index: 3;
+      width: 48%;
+      aspect-ratio: 1.55 / 1;
+      padding: 10px;
+      border: 6px solid #0a0c12;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #131b28, #182f42);
+      box-shadow: 0 22px 48px rgba(0,0,0,.4), 0 0 70px rgba(107,196,255,.15);
+      transform: translateZ(90px) rotateY(-5deg);
+    }
+
+    .monitor-screen {
+      height: 100%;
+      padding: 18px;
+      overflow: hidden;
+      background:
+        linear-gradient(rgba(107,196,255,.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(107,196,255,.1) 1px, transparent 1px),
+        #0a111a;
+      background-size: 22px 22px;
+      color: #a7e3ff;
+      font-family: monospace;
+      font-size: clamp(8px, .8vw, 12px);
+      line-height: 1.75;
+    }
+
+    .monitor-screen .typed-line {
+      display: block;
+      width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      animation: typing 3.2s steps(35) infinite alternate;
+    }
+
+    @keyframes typing { to { width: 100%; } }
+
+    .monitor-stand {
+      position: absolute;
+      left: 47%;
+      bottom: 17%;
+      width: 7%;
+      height: 12%;
+      background: linear-gradient(90deg, #171a21, #4a4f5b, #171a21);
+      transform: translateZ(70px);
+    }
+
+    .monitor-stand::after {
+      content: "";
+      position: absolute;
+      left: -80%;
+      bottom: -6px;
+      width: 260%;
+      height: 9px;
+      border-radius: 50%;
+      background: #22262e;
+    }
+
+    .desk-lamp {
+      position: absolute;
+      right: 8%;
+      bottom: 30%;
+      z-index: 4;
+      width: 17%;
+      height: 27%;
+      transform: translateZ(95px);
+    }
+
+    .lamp-head {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 76%;
+      height: 27%;
+      border-radius: 50% 50% 18% 18%;
+      background: linear-gradient(145deg, #f6c55c, #8f6428);
+      box-shadow: 0 18px 50px rgba(255,201,91,.22);
+      transform: rotate(18deg);
+    }
+
+    .lamp-arm {
+      position: absolute;
+      right: 41%;
+      top: 19%;
+      width: 8px;
+      height: 66%;
+      background: #bd8b38;
+      transform: rotate(14deg);
+    }
+
+    .lamp-base {
+      position: absolute;
+      right: 20%;
+      bottom: 0;
+      width: 52%;
+      height: 9%;
+      border-radius: 50%;
+      background: #7a5728;
+    }
+
+    .about-panel {
+      position: relative;
+      max-width: 790px;
+      padding: clamp(28px, 4vw, 58px);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 34px;
+      background: linear-gradient(145deg, rgba(22,27,38,.84), rgba(10,12,19,.64));
+      box-shadow: 0 34px 90px rgba(0,0,0,.34);
+      backdrop-filter: blur(18px);
+      transform: translate3d(var(--panel-x), var(--panel-y), 60px) rotateY(var(--panel-ry));
+    }
+
+    .about-panel::before {
+      content: "";
+      position: absolute;
+      inset: 13px;
+      pointer-events: none;
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 25px;
+    }
+
+    .about-panel h2,
+    .section-heading-3d {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(38px, 5vw, 74px);
+      line-height: .98;
+      letter-spacing: -.065em;
+    }
+
+    .about-panel p {
+      margin-top: 19px;
+      color: #c2c9d4;
+      font-size: clamp(14px, 1.2vw, 18px);
+      line-height: 1.78;
+    }
+
+    .stat-shelf {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .stat-object {
+      position: relative;
+      min-height: 114px;
+      padding: 18px;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 20px;
+      background: rgba(255,255,255,.045);
+      transform: perspective(700px) rotateX(4deg);
+      transition: .28s ease;
+    }
+
+    .stat-object:hover {
+      transform: perspective(700px) rotateX(0) translateY(-7px) translateZ(26px);
+      background: rgba(255,255,255,.08);
+    }
+
+    .stat-object strong {
+      display: block;
+      color: #d7efff;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 24px;
+    }
+
+    .stat-object span {
+      color: #9ea7b5;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    /* ROOM 3 — SKILLS GALLERY */
+    .room-skills {
+      --room-bg: #171310;
+      --room-glow: rgba(255,181,74,.14);
+      --room-accent: #f4b64d;
+    }
+
+    .room-skills .room-inner {
+      grid-template-rows: auto 1fr;
+      align-content: center;
+      gap: 28px;
+    }
+
+    .skills-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 30px;
+    }
+
+    .skills-heading p {
+      max-width: 490px;
+      color: #c7beb2;
+      font-size: 14px;
+      line-height: 1.75;
+      text-align: right;
+    }
+
+    .gallery-wall {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(7, minmax(110px, 1fr));
+      grid-template-rows: repeat(2, minmax(145px, 1fr));
+      gap: clamp(12px, 1.4vw, 24px);
+      align-self: center;
+      min-height: 430px;
+      padding: clamp(22px, 3vw, 42px);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 36px;
+      background:
+        radial-gradient(circle at 50% -20%, rgba(255,229,172,.1), transparent 38%),
+        linear-gradient(145deg, rgba(65,46,30,.48), rgba(18,15,13,.74));
+      box-shadow: 0 35px 100px rgba(0,0,0,.34), inset 0 0 0 12px rgba(0,0,0,.12);
+      perspective: 1200px;
+      transform: rotateX(var(--gallery-rx)) rotateY(var(--gallery-ry));
+    }
+
+    .painting {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: 145px;
+      padding: 16px 10px;
+      border: 8px solid var(--frame, #5d3921);
+      border-radius: 3px;
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--paint, #6bc4ff) 24%, #10131a), #0d0f15);
+      box-shadow:
+        0 17px 26px rgba(0,0,0,.34),
+        inset 0 0 0 2px rgba(255,255,255,.1),
+        inset 0 0 30px rgba(0,0,0,.3);
+      transform-style: preserve-3d;
+      transform: translateZ(var(--z, 15px)) rotateY(var(--ry, 0deg)) rotateX(var(--rx, 0deg));
+      transition: transform .32s ease, box-shadow .32s ease, filter .32s ease;
+    }
+
+    .painting::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(115deg, rgba(255,255,255,.24), transparent 28%),
+        radial-gradient(circle at 50% 110%, color-mix(in srgb, var(--paint, #6bc4ff) 30%, transparent), transparent 55%);
+      pointer-events: none;
+    }
+
+    .painting::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -18px;
+      width: 78%;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(0,0,0,.28);
+      filter: blur(7px);
+      transform: translateX(-50%) translateZ(-20px);
+    }
+
+    .painting:hover {
+      z-index: 5;
+      transform: translateZ(90px) rotateY(0) rotateX(0) scale(1.08);
+      box-shadow: 0 35px 75px rgba(0,0,0,.5), 0 0 60px color-mix(in srgb, var(--paint, #6bc4ff) 18%, transparent);
+      filter: saturate(1.25);
+    }
+
+    .painting i {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      place-items: center;
+      width: 58px;
+      height: 58px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 18px;
+      color: var(--paint, #6bc4ff);
+      background: rgba(0,0,0,.25);
+      font-size: 28px;
+      box-shadow: 0 14px 30px rgba(0,0,0,.26);
+    }
+
+    .painting strong {
+      position: relative;
+      z-index: 2;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(12px, 1.05vw, 16px);
+      text-align: center;
+      letter-spacing: -.02em;
+    }
+
+    .painting small {
+      position: relative;
+      z-index: 2;
+      margin-top: 5px;
+      color: #aeb3bd;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .painting.featured { grid-column: span 2; }
+
+    /* ROOM 4 — PROJECT LAB */
+    .room-projects {
+      --room-bg: #0c1116;
+      --room-glow: rgba(115,224,189,.15);
+      --room-accent: #73e0bd;
+    }
+
+    .room-projects .room-inner {
+      grid-template-rows: auto 1fr;
+      align-content: center;
+      gap: 28px;
+    }
+
+    .project-lab {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: clamp(18px, 2.4vw, 36px);
+      perspective: 1300px;
+    }
+
+    .project-pod {
+      position: relative;
+      min-height: min(500px, 57vh);
+      padding: clamp(20px, 2.2vw, 34px);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 34px;
+      background:
+        linear-gradient(160deg, rgba(255,255,255,.08), rgba(255,255,255,.018) 55%),
+        rgba(9,13,18,.78);
+      box-shadow: 0 36px 76px rgba(0,0,0,.34);
+      transform-style: preserve-3d;
+      transform: rotateY(var(--tilt, 0deg)) translateZ(var(--depth, 0));
+      transition: transform .4s cubic-bezier(.2,.75,.25,1), border-color .3s ease, box-shadow .3s ease;
+    }
+
+    .project-pod:nth-child(1) { --tilt: 7deg; }
+    .project-pod:nth-child(2) { --depth: 34px; }
+    .project-pod:nth-child(3) { --tilt: -7deg; }
+
+    .project-pod:hover {
+      z-index: 4;
+      transform: rotateY(0) translateY(-16px) translateZ(80px) scale(1.025);
+      border-color: rgba(115,224,189,.42);
+      box-shadow: 0 50px 110px rgba(0,0,0,.5), 0 0 70px rgba(115,224,189,.08);
+    }
+
+    .project-pod::before {
+      content: "";
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      right: -90px;
+      top: -90px;
+      border-radius: 50%;
+      background: var(--pod-glow, rgba(115,224,189,.2));
+      filter: blur(22px);
+    }
+
+    .pod-number {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #8e99a7;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .pod-number span:last-child {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #7effc9;
+      box-shadow: 0 0 0 7px rgba(126,255,201,.08), 0 0 18px rgba(126,255,201,.5);
+    }
+
+    .project-model {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 100%;
+      aspect-ratio: 1.5 / 1;
+      margin: 28px 0 26px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 24px;
+      background:
+        linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px),
+        linear-gradient(145deg, #121a21, #080b0f);
+      background-size: 24px 24px;
+      transform-style: preserve-3d;
+      transform: perspective(800px) rotateX(5deg);
+      box-shadow: inset 0 0 55px rgba(0,0,0,.25);
+    }
+
+    .project-model::after {
+      content: "";
+      position: absolute;
+      left: 16%;
+      right: 16%;
+      bottom: 12%;
+      height: 20%;
+      border-radius: 50%;
+      background: var(--pod-glow, rgba(115,224,189,.22));
+      filter: blur(22px);
+    }
+
+    .model-object {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      place-items: center;
+      width: 92px;
+      height: 92px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 28px;
+      color: var(--pod-color, #73e0bd);
+      background: linear-gradient(145deg, rgba(255,255,255,.12), rgba(255,255,255,.03));
+      font-size: 42px;
+      box-shadow: 0 25px 50px rgba(0,0,0,.36), inset 0 0 28px var(--pod-glow, rgba(115,224,189,.1));
+      transform: translateZ(80px) rotateX(var(--model-rx)) rotateY(var(--model-ry));
+      animation: modelFloat 4s ease-in-out infinite;
+    }
+
+    .project-pod:nth-child(2) .model-object { animation-delay: -.8s; }
+    .project-pod:nth-child(3) .model-object { animation-delay: -1.6s; }
+
+    @keyframes modelFloat {
+      50% { transform: translateY(-13px) translateZ(86px) rotateX(var(--model-rx)) rotateY(var(--model-ry-plus)); }
+    }
+
+    .project-pod h3 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(23px, 2vw, 34px);
+      line-height: 1;
+      letter-spacing: -.05em;
+    }
+
+    .project-pod p {
+      margin-top: 14px;
+      color: #aeb8c4;
+      font-size: 13px;
+      line-height: 1.72;
+    }
+
+    .tech-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 20px;
+    }
+
+    .tech-tags span {
+      padding: 6px 9px;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 999px;
+      color: #c8d2dc;
+      background: rgba(255,255,255,.045);
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .pod-link {
+      position: absolute;
+      right: 28px;
+      bottom: 25px;
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 50%;
+      color: #e9fff8;
+      background: rgba(255,255,255,.055);
+      transition: .25s ease;
+    }
+
+    .project-pod:hover .pod-link {
+      color: #111712;
+      background: #73e0bd;
+      transform: rotate(-38deg);
+    }
+
+    /* ROOM 5 — AI / JOURNEY */
+    .room-focus {
+      --room-bg: #100d18;
+      --room-glow: rgba(157,123,255,.18);
+      --room-accent: #9d7bff;
+    }
+
+    .room-focus .room-inner {
+      grid-template-columns: minmax(0, .82fr) minmax(570px, 1.18fr);
+      gap: clamp(40px, 5vw, 90px);
+    }
+
+    .focus-copy {
+      position: relative;
+      z-index: 2;
+    }
+
+    .focus-copy h2 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(48px, 6.5vw, 100px);
+      line-height: .88;
+      letter-spacing: -.07em;
+    }
+
+    .focus-copy p {
+      max-width: 620px;
+      margin-top: 24px;
+      color: #c2bad3;
+      font-size: clamp(15px, 1.35vw, 19px);
+      line-height: 1.78;
+    }
+
+    .learning-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin-top: 24px;
+      padding: 10px 13px;
+      border: 1px solid rgba(157,123,255,.28);
+      border-radius: 13px;
+      color: #d7caff;
+      background: rgba(157,123,255,.08);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .neural-room {
+      position: relative;
+      height: min(660px, 72vh);
+      perspective: 1000px;
+      transform-style: preserve-3d;
+    }
+
+    .neural-core {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 5;
+      width: 170px;
+      height: 170px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 46% 54% 52% 48%;
+      color: white;
+      background:
+        radial-gradient(circle at 35% 30%, rgba(255,255,255,.36), transparent 14%),
+        linear-gradient(145deg, #a88bff, #5335b5 70%);
+      font-size: 60px;
+      box-shadow: 0 0 0 22px rgba(157,123,255,.055), 0 0 0 45px rgba(157,123,255,.028), 0 30px 90px rgba(82,50,175,.45);
+      transform: translate(-50%, -50%) translateZ(80px) rotate(var(--core-rotation));
+      animation: neuralPulse 3.6s ease-in-out infinite;
+    }
+
+    @keyframes neuralPulse {
+      50% { border-radius: 55% 45% 42% 58%; filter: saturate(1.3); }
+    }
+
+    .orbit {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      border: 1px solid rgba(184,162,255,.18);
+      border-radius: 50%;
+      transform: translate(-50%, -50%) rotateX(66deg) rotateZ(var(--rz, 0deg));
+      animation: orbitSpin var(--speed, 12s) linear infinite;
+    }
+
+    .orbit.one { width: 360px; height: 360px; --speed: 15s; }
+    .orbit.two { width: 500px; height: 500px; --speed: 20s; --rz: 40deg; animation-direction: reverse; }
+    .orbit.three { width: 620px; height: 620px; --speed: 26s; --rz: 75deg; }
+
+    @keyframes orbitSpin {
+      to { transform: translate(-50%, -50%) rotateX(66deg) rotateZ(calc(var(--rz, 0deg) + 360deg)); }
+    }
+
+    .focus-node {
+      position: absolute;
+      z-index: 8;
+      width: clamp(130px, 12vw, 190px);
+      min-height: 112px;
+      padding: 17px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 20px;
+      background: rgba(17,13,26,.72);
+      box-shadow: 0 22px 58px rgba(0,0,0,.35);
+      backdrop-filter: blur(14px);
+      transform: translateZ(var(--z, 50px)) rotateY(var(--ry, 0deg));
+      transition: .28s ease;
+    }
+
+    .focus-node:hover {
+      z-index: 15;
+      transform: translateZ(130px) rotateY(0) translateY(-7px) scale(1.06);
+      border-color: rgba(174,151,255,.38);
+      background: rgba(34,25,56,.9);
+    }
+
+    .focus-node i {
+      color: #cbbcff;
+      font-size: 20px;
+    }
+
+    .focus-node strong {
+      display: block;
+      margin-top: 11px;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 15px;
+    }
+
+    .focus-node small {
+      display: block;
+      margin-top: 5px;
+      color: #aaa2b8;
+      font-size: 10px;
+      line-height: 1.55;
+    }
+
+    .node-1 { left: 2%; top: 12%; --ry: 8deg; }
+    .node-2 { right: 2%; top: 10%; --ry: -8deg; }
+    .node-3 { left: 0; bottom: 10%; --ry: 8deg; }
+    .node-4 { right: 0; bottom: 9%; --ry: -8deg; }
+    .node-5 { left: 50%; bottom: 0; transform: translateX(-50%) translateZ(70px); }
+
+    /* ROOM 6 — CONTACT */
+    .room-contact {
+      --room-bg: #15100d;
+      --room-glow: rgba(255,122,69,.17);
+      --room-accent: #ff8b52;
+    }
+
+    .room-contact .room-inner {
+      grid-template-columns: minmax(0, .85fr) minmax(520px, 1.15fr);
+      gap: clamp(42px, 6vw, 100px);
+    }
+
+    .contact-copy h2 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(52px, 7vw, 112px);
+      line-height: .86;
+      letter-spacing: -.075em;
+    }
+
+    .contact-copy p {
+      max-width: 630px;
+      margin-top: 24px;
+      color: #cfc0b8;
+      font-size: clamp(15px, 1.35vw, 19px);
+      line-height: 1.8;
+    }
+
+    .availability {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 28px;
+      color: #cfd4dc;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .availability span {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #71e7ac;
+      box-shadow: 0 0 0 8px rgba(113,231,172,.08), 0 0 20px rgba(113,231,172,.6);
+      animation: livePulse 1.6s ease-in-out infinite;
+    }
+
+    @keyframes livePulse { 50% { transform: scale(.72); opacity: .7; } }
+
+    .links-lounge {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+      padding: clamp(20px, 3vw, 36px);
+      border: 1px solid rgba(255,255,255,.11);
+      border-radius: 38px;
+      background:
+        radial-gradient(circle at 50% -12%, rgba(255,187,118,.12), transparent 38%),
+        linear-gradient(145deg, rgba(49,33,25,.76), rgba(15,12,11,.8));
+      box-shadow: 0 40px 100px rgba(0,0,0,.38);
+      perspective: 1100px;
+      transform: rotateY(var(--lounge-ry)) rotateX(var(--lounge-rx));
+    }
+
+    .social-chair {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 17px;
+      min-height: 130px;
+      padding: 22px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.11);
+      border-radius: 26px;
+      background: rgba(255,255,255,.045);
+      box-shadow: 0 20px 45px rgba(0,0,0,.24);
+      transform-style: preserve-3d;
+      transform: translateZ(var(--z, 20px)) rotateY(var(--ry, 0deg));
+      transition: transform .3s ease, background .3s ease, border-color .3s ease;
+    }
+
+    .social-chair::before {
+      content: "";
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      right: -46px;
+      bottom: -60px;
+      border-radius: 50%;
+      background: var(--social-glow, rgba(255,139,82,.18));
+      filter: blur(12px);
+    }
+
+    .social-chair:hover {
+      z-index: 4;
+      transform: translateZ(90px) rotateY(0) translateY(-9px) scale(1.03);
+      border-color: rgba(255,255,255,.3);
+      background: rgba(255,255,255,.085);
+    }
+
+    .social-icon {
+      position: relative;
+      z-index: 2;
+      flex: 0 0 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 18px;
+      color: white;
+      background: rgba(0,0,0,.25);
+      font-size: 27px;
+      box-shadow: 0 16px 30px rgba(0,0,0,.24);
+    }
+
+    .social-chair strong {
+      position: relative;
+      z-index: 2;
+      display: block;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 17px;
+    }
+
+    .social-chair small {
+      position: relative;
+      z-index: 2;
+      display: block;
+      margin-top: 5px;
+      color: #ada39f;
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .contact-footer {
+      position: absolute;
+      left: 50%;
+      bottom: 18px;
+      z-index: 22;
+      color: rgba(255,255,255,.44);
+      font-size: 10px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      transform: translateX(-50%);
+      white-space: nowrap;
+    }
+
+    .room-label {
+      position: absolute;
+      left: clamp(18px, 3vw, 46px);
+      bottom: 22px;
+      z-index: 21;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: rgba(255,255,255,.48);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .room-label b {
+      color: white;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 18px;
+    }
+
+    .mobile-note {
+      display: none;
+    }
+
+    @media (max-width: 1180px) {
+      .topbar { padding-inline: 24px; }
+      .room-inner { width: calc(100% - 48px); }
+      .display-title { font-size: clamp(54px, 8.6vw, 108px); }
+      .room-home .room-inner { grid-template-columns: 1fr .86fr; }
+      .house-exterior { width: 44vw; }
+      .gallery-wall { grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(3, 132px); }
+      .painting.featured { grid-column: span 1; }
+      .painting:nth-child(13), .painting:nth-child(14) { display: none; }
+      .room-focus .room-inner { grid-template-columns: .78fr 1.22fr; }
+    }
+
+    @media (max-width: 900px) {
+      body {
+        min-height: auto;
+        overflow-x: hidden;
+      }
+
+      .cursor-dot,
+      .cursor-ring,
+      .scroll-hint,
+      .room-nav,
+      .top-actions .mini-btn:not(.accent) {
+        display: none;
+      }
+
+      .topbar {
+        padding: 14px 16px;
+        background: rgba(6,8,13,.78);
+        border-bottom: 1px solid rgba(255,255,255,.08);
+        backdrop-filter: blur(14px);
+      }
+
+      .mini-btn.accent { min-height: 39px; padding-inline: 13px; }
+      .mini-btn.accent span { display: none; }
+
+      .stage {
+        position: relative;
+        inset: auto;
+        overflow: visible;
+      }
+
+      .track {
+        display: block;
+        width: 100%;
+        height: auto;
+        transform: none !important;
+      }
+
+      .room {
+        width: 100%;
+        height: auto;
+        min-height: 100svh;
+        padding: 80px 0 46px;
+        overflow: hidden;
+      }
+
+      .room-inner {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        width: min(100% - 30px, 720px);
+        height: auto;
+        min-height: calc(100svh - 126px);
+        padding: 34px 0 30px;
+        gap: 35px !important;
+      }
+
+      .architecture { opacity: .8; }
+      .display-title { font-size: clamp(54px, 15vw, 90px); }
+      .lead { font-size: 15px; }
+      .house-exterior {
+        width: min(620px, 94vw);
+        justify-self: center;
+        transform: perspective(1000px) rotateX(-6deg) rotateY(-9deg);
+      }
+      .hero-copy { order: 1; }
+      .house-exterior { order: 2; }
+      .study-scene { height: 480px; order: 2; }
+      .about-panel { order: 1; padding: 30px 23px; }
+      .stat-shelf { grid-template-columns: 1fr; }
+      .skills-heading { align-items: flex-start; flex-direction: column; }
+      .skills-heading p { text-align: left; }
+      .gallery-wall {
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: auto;
+        min-height: auto;
+        padding: 17px;
+        transform: none;
+      }
+      .painting { min-height: 145px; }
+      .painting:nth-child(13), .painting:nth-child(14) { display: grid; }
+      .project-lab { grid-template-columns: 1fr; }
+      .project-pod,
+      .project-pod:nth-child(1),
+      .project-pod:nth-child(2),
+      .project-pod:nth-child(3) {
+        min-height: 460px;
+        transform: none;
+      }
+      .room-focus .room-inner { padding-bottom: 90px; }
+      .neural-room { height: 600px; width: 100%; overflow: hidden; }
+      .orbit.two { width: 440px; height: 440px; }
+      .orbit.three { width: 560px; height: 560px; }
+      .focus-node { width: 145px; }
+      .links-lounge { transform: none; }
+      .contact-footer { bottom: 8px; }
+      .mobile-note {
+        position: fixed;
+        left: 50%;
+        bottom: 14px;
+        z-index: 88;
+        display: block;
+        width: max-content;
+        max-width: calc(100% - 30px);
+        padding: 9px 12px;
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 999px;
+        color: #c8ced8;
+        background: rgba(8,10,16,.78);
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        transform: translateX(-50%);
+        backdrop-filter: blur(14px);
+      }
+    }
+
+    @media (max-width: 620px) {
+      .brand-copy small { display: none; }
+      .room-inner { width: min(100% - 22px, 620px); }
+      .room-kicker { font-size: 9px; }
+      .display-title { font-size: clamp(49px, 16vw, 72px); }
+      .cta-row { flex-direction: column; }
+      .btn { width: 100%; }
+      .house-exterior { width: 112vw; margin-inline: -6vw; }
+      .study-scene { height: 390px; }
+      .study-window { width: 76%; left: 4%; }
+      .monitor { width: 54%; left: 22%; }
+      .about-panel h2,
+      .section-heading-3d { font-size: 42px; }
+      .gallery-wall { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 11px; }
+      .painting { min-height: 140px; border-width: 5px; }
+      .painting i { width: 48px; height: 48px; font-size: 23px; }
+      .project-pod { min-height: 430px !important; padding: 22px; }
+      .focus-copy h2,
+      .contact-copy h2 { font-size: clamp(48px, 15vw, 72px); }
+      .neural-room { height: 650px; }
+      .neural-core { width: 132px; height: 132px; font-size: 46px; }
+      .orbit.one { width: 280px; height: 280px; }
+      .orbit.two { width: 380px; height: 380px; }
+      .orbit.three { width: 500px; height: 500px; }
+      .focus-node { width: 135px; min-height: 106px; padding: 13px; }
+      .node-1 { left: 0; top: 8%; }
+      .node-2 { right: 0; top: 8%; }
+      .node-3 { left: 0; bottom: 13%; }
+      .node-4 { right: 0; bottom: 13%; }
+      .node-5 { bottom: 0; }
+      .links-lounge { grid-template-columns: 1fr; padding: 15px; }
+      .social-chair { min-height: 106px; }
+      .room-label { display: none; }
+      .contact-footer { white-space: normal; width: 90%; text-align: center; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="loader" id="loader" aria-hidden="true">
+    <div class="loader-house">
+      <div class="loader-roof"></div>
+      <div class="loader-body"><div class="loader-door"></div></div>
+      <h2>Opening Rishav Portfolio House</h2>
+      <p>Preparing the rooms</p>
+    </div>
+  </div>
+
+  <div class="noise"></div>
+  <div class="ambient-glow"></div>
+  <div class="cursor-dot" id="cursorDot"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+  <div class="progress-line" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#home" data-room-link="0" aria-label="Go to entrance">
+      <span class="brand-cube"><span>RM</span></span>
+      <span class="brand-copy">
+        <strong>Rishav Portfolio House</strong>
+        <small>Six rooms · One story</small>
+      </span>
+    </a>
+
+    <nav class="room-nav" aria-label="Portfolio rooms">
+      <button class="is-active" data-room="0" data-label="Entrance" aria-label="Entrance"><i class="fa-solid fa-house"></i></button>
+      <button data-room="1" data-label="About Studio" aria-label="About Studio"><i class="fa-solid fa-user-astronaut"></i></button>
+      <button data-room="2" data-label="Skills Gallery" aria-label="Skills Gallery"><i class="fa-solid fa-images"></i></button>
+      <button data-room="3" data-label="Project Lab" aria-label="Project Lab"><i class="fa-solid fa-flask"></i></button>
+      <button data-room="4" data-label="AI Chamber" aria-label="AI Chamber"><i class="fa-solid fa-brain"></i></button>
+      <button data-room="5" data-label="Connect Lounge" aria-label="Connect Lounge"><i class="fa-solid fa-paper-plane"></i></button>
+    </nav>
+
+    <div class="top-actions">
+      <a class="mini-btn" href="https://github.com/Rishav2801" target="_blank" rel="noopener">
+        <i class="fa-brands fa-github"></i><span>GitHub</span>
+      </a>
+      <button class="mini-btn accent" data-room-link="5">
+        <i class="fa-solid fa-arrow-right"></i><span>Contact</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <div class="track" id="track">
+      <!-- ROOM 01: ENTRANCE -->
+      <section class="room room-home" id="home" data-room-index="0">
+        <div class="architecture">
+          <div class="back-wall"></div><div class="left-wall"></div><div class="right-wall"></div>
+          <div class="ceiling"></div><div class="floor"></div><div class="ceiling-light"></div>
+        </div>
+        <div class="dust" aria-hidden="true"></div>
+
+        <div class="room-inner">
+          <div class="hero-copy">
+            <div class="room-kicker"><span></span> Welcome to my digital home</div>
+            <h1 class="display-title">Hi, I’m <span class="accent-word">Rishav Mishra.</span></h1>
+            <p class="lead">B.Tech Student, Data Analyst, AI/ML Engineer and Full-Stack Developer — building intelligent products, meaningful data experiences and scalable web applications.</p>
+            <div class="cta-row">
+              <button class="btn primary" data-room-link="3"><i class="fa-solid fa-door-open"></i> Enter Project Lab</button>
+              <button class="btn" data-room-link="2"><i class="fa-solid fa-images"></i> Explore Skills Hall</button>
+            </div>
+          </div>
+
+          <div class="house-exterior" aria-label="3D portfolio house">
+            <div class="tree one"></div>
+            <div class="tree two"></div>
+            <div class="house-roof"></div>
+            <div class="house-face"></div>
+            <div class="house-sign">Rishav Portfolio</div>
+            <figure class="portrait-window">
+              <!-- Replace assets/rishav-profile.jpg with your actual photo -->
+              <img src="assets/rishav-profile.jpg" alt="Rishav Mishra" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22460%22 viewBox=%220 0 400 460%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop stop-color=%22%23d6b97f%22/%3E%3Cstop offset=%221%22 stop-color=%22%23242b37%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%22400%22 height=%22460%22 fill=%22url(%23g)%22/%3E%3Ccircle cx=%22200%22 cy=%22160%22 r=%2275%22 fill=%22%23f1dcc0%22 opacity=%22.8%22/%3E%3Cpath d=%22M74 430c15-110 70-164 126-164s112 54 126 164%22 fill=%22%23151a23%22/%3E%3Ctext x=%22200%22 y=%22435%22 text-anchor=%22middle%22 font-family=%22Arial%22 font-size=%2220%22 fill=%22white%22%3EADD YOUR PHOTO%3C/text%3E%3C/svg%3E'" />
+            </figure>
+            <div class="front-door"></div>
+            <div class="house-step"></div>
+          </div>
+        </div>
+
+        <div class="room-label"><b>01</b> Entrance</div>
+        <div class="scroll-hint"><div class="mouse"></div><span>Scroll to walk through the house</span></div>
+      </section>
+
+      <!-- ROOM 02: ABOUT -->
+      <section class="room room-about" id="about" data-room-index="1">
+        <div class="architecture">
+          <div class="back-wall"></div><div class="left-wall"></div><div class="right-wall"></div>
+          <div class="ceiling"></div><div class="floor"></div><div class="ceiling-light"></div>
+        </div>
+        <div class="dust" aria-hidden="true"></div>
+
+        <div class="room-inner">
+          <div class="study-scene" aria-hidden="true">
+            <div class="study-window"></div>
+            <div class="desk"></div>
+            <div class="monitor"><div class="monitor-screen">
+              <span>&gt; profile.init()</span>
+              <span class="typed-line">Building data-driven products...</span>
+              <span>&gt; interests = [AI, ML, Analytics]</span>
+              <span>&gt; status: learning_and_shipping</span>
+            </div></div>
+            <div class="monitor-stand"></div>
+            <div class="desk-lamp"><div class="lamp-head"></div><div class="lamp-arm"></div><div class="lamp-base"></div></div>
+          </div>
+
+          <article class="about-panel">
+            <div class="room-kicker"><span></span> Room 02 · The Study</div>
+            <h2>Where curiosity becomes <span style="color:#8ed5ff">useful technology.</span></h2>
+            <p>I’m Rishav Mishra, a B.Tech student passionate about Data Analytics, Artificial Intelligence, Machine Learning and Full-Stack Development.</p>
+            <p>I transform raw data into meaningful insights, build intelligent AI applications and develop modern web products. My interests include Data Science, Deep Learning, LLMs, RAG systems and scalable product engineering.</p>
+            <p>Right now, I’m strengthening Advanced SQL, Power BI, Python, TensorFlow, PyTorch and MLOps through practical, real-world projects.</p>
+
+            <div class="stat-shelf">
+              <div class="stat-object"><strong>AI + Data</strong><span>Primary direction</span></div>
+              <div class="stat-object"><strong>Full Stack</strong><span>Product building</span></div>
+              <div class="stat-object"><strong>Always</strong><span>Learning & shipping</span></div>
+            </div>
+          </article>
+        </div>
+        <div class="room-label"><b>02</b> About Studio</div>
+      </section>
+
+      <!-- ROOM 03: SKILLS -->
+      <section class="room room-skills" id="skills" data-room-index="2">
+        <div class="architecture">
+          <div class="back-wall"></div><div class="left-wall"></div><div class="right-wall"></div>
+          <div class="ceiling"></div><div class="floor"></div><div class="ceiling-light"></div>
+        </div>
+        <div class="dust" aria-hidden="true"></div>
+
+        <div class="room-inner">
+          <div class="skills-heading">
+            <div>
+              <div class="room-kicker"><span></span> Room 03 · Skills Gallery</div>
+              <h2 class="section-heading-3d">Every painting is a <span style="color:#f4bd58">capability.</span></h2>
+            </div>
+            <p>Hover over the frames. Each artwork represents a technology, concept or discipline I use to turn ideas into working systems.</p>
+          </div>
+
+          <div class="gallery-wall">
+            <article class="painting featured" style="--paint:#ffd166;--frame:#7b4b25;--z:30px;--ry:2deg"><i class="fa-brands fa-python"></i><strong>Python</strong><small>Core language</small></article>
+            <article class="painting" style="--paint:#75d5ff;--frame:#55371f;--z:16px;--ry:-2deg"><i class="fa-solid fa-database"></i><strong>Advanced SQL</strong><small>Data querying</small></article>
+            <article class="painting" style="--paint:#ffca4b;--frame:#604227;--z:24px;--rx:1deg"><i class="fa-solid fa-chart-column"></i><strong>Power BI</strong><small>Dashboards</small></article>
+            <article class="painting" style="--paint:#ff7892;--frame:#4e331e;--z:12px;--ry:2deg"><i class="fa-solid fa-square-root-variable"></i><strong>Statistics</strong><small>Analysis</small></article>
+            <article class="painting" style="--paint:#8fd3ff;--frame:#6c4829;--z:28px;--ry:-2deg"><i class="fa-solid fa-table"></i><strong>Pandas</strong><small>Data wrangling</small></article>
+            <article class="painting" style="--paint:#6fc7ff;--frame:#4f321d;--z:14px"><i class="fa-solid fa-cubes"></i><strong>NumPy</strong><small>Numerical work</small></article>
+            <article class="painting" style="--paint:#73e0bd;--frame:#74502c;--z:23px;--ry:2deg"><i class="fa-solid fa-chart-line"></i><strong>Visualization</strong><small>Data storytelling</small></article>
+            <article class="painting featured" style="--paint:#b49aff;--frame:#51341f;--z:34px;--ry:-1deg"><i class="fa-solid fa-robot"></i><strong>Machine Learning</strong><small>Predictive systems</small></article>
+            <article class="painting" style="--paint:#df83ff;--frame:#68452a;--z:18px;--ry:2deg"><i class="fa-solid fa-brain"></i><strong>Deep Learning</strong><small>Neural networks</small></article>
+            <article class="painting" style="--paint:#ff965d;--frame:#4d321e;--z:26px"><i class="fa-solid fa-fire-flame-curved"></i><strong>TensorFlow</strong><small>Model building</small></article>
+            <article class="painting" style="--paint:#ff6464;--frame:#654329;--z:13px;--ry:-2deg"><i class="fa-solid fa-bolt"></i><strong>PyTorch</strong><small>AI research</small></article>
+            <article class="painting" style="--paint:#9e8cff;--frame:#593a22;--z:27px"><i class="fa-solid fa-wand-magic-sparkles"></i><strong>LLMs & RAG</strong><small>Intelligent apps</small></article>
+            <article class="painting" style="--paint:#62d5ff;--frame:#76502d;--z:16px;--ry:2deg"><i class="fa-brands fa-react"></i><strong>React / Next.js</strong><small>Modern frontend</small></article>
+            <article class="painting" style="--paint:#86e6a9;--frame:#51351f;--z:25px;--ry:-2deg"><i class="fa-brands fa-node-js"></i><strong>Node / Express</strong><small>APIs & backend</small></article>
+          </div>
+        </div>
+        <div class="room-label"><b>03</b> Skills Gallery</div>
+      </section>
+
+      <!-- ROOM 04: PROJECTS -->
+      <section class="room room-projects" id="projects" data-room-index="3">
+        <div class="architecture">
+          <div class="back-wall"></div><div class="left-wall"></div><div class="right-wall"></div>
+          <div class="ceiling"></div><div class="floor"></div><div class="ceiling-light"></div>
+        </div>
+        <div class="dust" aria-hidden="true"></div>
+
+        <div class="room-inner">
+          <div class="skills-heading">
+            <div>
+              <div class="room-kicker"><span></span> Room 04 · Project Laboratory</div>
+              <h2 class="section-heading-3d">Ideas displayed as <span style="color:#87efd0">working prototypes.</span></h2>
+            </div>
+            <p>Three selected product concepts across AI, education and food technology. Replace each arrow link with its final live demo or repository URL.</p>
+          </div>
+
+          <div class="project-lab">
+            <article class="project-pod" style="--pod-color:#85e8ff;--pod-glow:rgba(86,202,255,.22)">
+              <div class="pod-number"><span>Prototype 01</span><span></span></div>
+              <div class="project-model"><div class="model-object"><i class="fa-solid fa-file-signature"></i></div></div>
+              <h3>Smart Resume Builder</h3>
+              <p>An intelligent resume platform that helps users create structured, professional resumes with smart suggestions and polished formatting.</p>
+              <div class="tech-tags"><span>AI</span><span>Resume</span><span>Web App</span></div>
+              <a class="pod-link" href="https://github.com/Rishav2801" target="_blank" rel="noopener" aria-label="Open Smart Resume Builder project"><i class="fa-solid fa-arrow-right"></i></a>
+            </article>
+
+            <article class="project-pod" style="--pod-color:#a98dff;--pod-glow:rgba(157,123,255,.25)">
+              <div class="pod-number"><span>Prototype 02</span><span></span></div>
+              <div class="project-model"><div class="model-object"><i class="fa-solid fa-code"></i></div></div>
+              <h3>Code and Learn</h3>
+              <p>A student coding platform for structured learning, programming practice, skill improvement and career-ready confidence.</p>
+              <div class="tech-tags"><span>EdTech</span><span>Full Stack</span><span>Coding</span></div>
+              <a class="pod-link" href="https://github.com/Rishav2801" target="_blank" rel="noopener" aria-label="Open Code and Learn project"><i class="fa-solid fa-arrow-right"></i></a>
+            </article>
+
+            <article class="project-pod" style="--pod-color:#ffaf6f;--pod-glow:rgba(255,139,82,.23)">
+              <div class="pod-number"><span>Prototype 03</span><span></span></div>
+              <div class="project-model"><div class="model-object"><i class="fa-solid fa-bowl-food"></i></div></div>
+              <h3>Bukhlgi</h3>
+              <p>A food delivery platform concept for local restaurants, online ordering, smooth customer experiences and scalable marketplace operations.</p>
+              <div class="tech-tags"><span>FoodTech</span><span>Marketplace</span><span>Product</span></div>
+              <a class="pod-link" href="https://github.com/Rishav2801" target="_blank" rel="noopener" aria-label="Open Bukhlgi project"><i class="fa-solid fa-arrow-right"></i></a>
+            </article>
+          </div>
+        </div>
+        <div class="room-label"><b>04</b> Project Lab</div>
+      </section>
+
+      <!-- ROOM 05: CURRENT FOCUS -->
+      <section class="room room-focus" id="focus" data-room-index="4">
+        <div class="architecture">
+          <div class="back-wall"></div><div class="left-wall"></div><div class="right-wall"></div>
+          <div class="ceiling"></div><div class="floor"></div><div class="ceiling-light"></div>
+        </div>
+        <div class="dust" aria-hidden="true"></div>
+
+        <div class="room-inner">
+          <div class="focus-copy">
+            <div class="room-kicker"><span></span> Room 05 · AI Chamber</div>
+            <h2>My current <span style="color:#bba9ff">learning orbit.</span></h2>
+            <p>I’m combining data analytics, machine learning, deep learning, LLMs, RAG, full-stack engineering and deployment practices to build complete AI products — not isolated demos.</p>
+            <div class="learning-chip"><i class="fa-solid fa-satellite-dish"></i> Status: actively learning and building</div>
+          </div>
+
+          <div class="neural-room" aria-label="Current focus areas">
+            <div class="orbit one"></div><div class="orbit two"></div><div class="orbit three"></div>
+            <div class="neural-core"><i class="fa-solid fa-brain"></i></div>
+
+            <article class="focus-node node-1"><i class="fa-solid fa-chart-simple"></i><strong>Data Analytics</strong><small>Dashboards, business insights and data storytelling.</small></article>
+            <article class="focus-node node-2"><i class="fa-solid fa-robot"></i><strong>Machine Learning</strong><small>Algorithms, modeling and practical prediction systems.</small></article>
+            <article class="focus-node node-3"><i class="fa-solid fa-network-wired"></i><strong>Deep Learning</strong><small>Neural networks with TensorFlow and PyTorch.</small></article>
+            <article class="focus-node node-4"><i class="fa-solid fa-wand-magic-sparkles"></i><strong>LLMs & RAG</strong><small>Context-aware AI apps and retrieval workflows.</small></article>
+            <article class="focus-node node-5"><i class="fa-solid fa-code-branch"></i><strong>MLOps + Open Source</strong><small>Deployment, iteration and real-world collaboration.</small></article>
+          </div>
+        </div>
+        <div class="room-label"><b>05</b> AI Chamber</div>
+      </section>
+
+      <!-- ROOM 06: CONTACT -->
+      <section class="room room-contact" id="contact" data-room-index="5">
+        <div class="architecture">
+          <div class="back-wall"></div><div class="left-wall"></div><div class="right-wall"></div>
+          <div class="ceiling"></div><div class="floor"></div><div class="ceiling-light"></div>
+        </div>
+        <div class="dust" aria-hidden="true"></div>
+
+        <div class="room-inner">
+          <div class="contact-copy">
+            <div class="room-kicker"><span></span> Final Room · Connect Lounge</div>
+            <h2>Let’s build something <span style="color:#ffab78">meaningful.</span></h2>
+            <p>Open to internships, collaborations, project discussions, open-source work and real-world opportunities across AI, data and full-stack product development.</p>
+            <div class="availability"><span></span> Available for projects and collaboration</div>
+          </div>
+
+          <div class="links-lounge">
+            <a class="social-chair" href="https://www.linkedin.com/in/rishav-mishra-978781377" target="_blank" rel="noopener" style="--ry:4deg;--social-glow:rgba(75,151,255,.24)">
+              <span class="social-icon"><i class="fa-brands fa-linkedin-in"></i></span><span><strong>LinkedIn</strong><small>Professional profile</small></span>
+            </a>
+            <a class="social-chair" href="https://github.com/Rishav2801" target="_blank" rel="noopener" style="--ry:-4deg;--z:34px;--social-glow:rgba(255,255,255,.15)">
+              <span class="social-icon"><i class="fa-brands fa-github"></i></span><span><strong>GitHub</strong><small>Code and repositories</small></span>
+            </a>
+            <a class="social-chair" href="https://www.instagram.com/iamrishav_m28/?__pwa=1" target="_blank" rel="noopener" style="--ry:4deg;--z:28px;--social-glow:rgba(255,73,135,.22)">
+              <span class="social-icon"><i class="fa-brands fa-instagram"></i></span><span><strong>Instagram</strong><small>Social updates</small></span>
+            </a>
+            <a class="social-chair" href="https://x.com/RishavM41597756" target="_blank" rel="noopener" style="--ry:-4deg;--social-glow:rgba(117,197,255,.18)">
+              <span class="social-icon"><i class="fa-brands fa-x-twitter"></i></span><span><strong>X / Twitter</strong><small>Ideas and conversations</small></span>
+            </a>
+          </div>
+        </div>
+
+        <div class="room-label"><b>06</b> Connect Lounge</div>
+        <div class="contact-footer">© <span id="year"></span> Rishav Mishra · Designed as an immersive portfolio house</div>
+      </section>
+    </div>
+  </main>
+
+  <div class="mobile-note">Swipe down to explore every room</div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const root = document.documentElement;
+      const loader = document.getElementById("loader");
+      const rooms = [...document.querySelectorAll(".room")];
+      const navButtons = [...document.querySelectorAll(".room-nav button")];
+      const roomLinks = [...document.querySelectorAll("[data-room-link]")];
+      const cursorDot = document.getElementById("cursorDot");
+      const cursorRing = document.getElementById("cursorRing");
+      const roomCount = rooms.length;
+      let targetProgress = 0;
+      let currentProgress = 0;
+      let rafId = 0;
+      let activeRoom = 0;
+      let ringX = 0;
+      let ringY = 0;
+      let pointerX = window.innerWidth / 2;
+      let pointerY = window.innerHeight / 2;
+
+      root.style.setProperty("--room-count", roomCount);
+      document.getElementById("year").textContent = new Date().getFullYear();
+
+      window.addEventListener("load", () => {
+        window.setTimeout(() => loader.classList.add("is-hidden"), 450);
+      });
+
+      const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+      function getScrollProgress() {
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        return maxScroll > 0 ? clamp(window.scrollY / maxScroll, 0, 1) : 0;
+      }
+
+      function setActiveRoom(index) {
+        if (index === activeRoom) return;
+        activeRoom = index;
+        navButtons.forEach((button, buttonIndex) => {
+          button.classList.toggle("is-active", buttonIndex === index);
+        });
+      }
+
+      function updateRoomLocalProgress(roomProgress) {
+        rooms.forEach((room, index) => {
+          const local = clamp(roomProgress - index, 0, 1);
+          room.style.setProperty("--room-local", local.toFixed(4));
+          room.style.setProperty("--door-angle", `${-10 - local * 72}deg`);
+        });
+      }
+
+      function render() {
+        const isDesktop = window.matchMedia("(min-width: 901px)").matches;
+        if (isDesktop) {
+          currentProgress += (targetProgress - currentProgress) * 0.095;
+          if (Math.abs(targetProgress - currentProgress) < 0.0001) currentProgress = targetProgress;
+
+          const roomProgress = currentProgress * (roomCount - 1);
+          root.style.setProperty("--progress", currentProgress.toFixed(5));
+          root.style.setProperty("--room-progress", roomProgress.toFixed(5));
+          root.style.setProperty("--track-x", `${-roomProgress * 100}vw`);
+          root.style.setProperty("--core-rotation", `${currentProgress * 120}deg`);
+          updateRoomLocalProgress(roomProgress);
+
+          const nearestRoom = clamp(Math.round(roomProgress), 0, roomCount - 1);
+          setActiveRoom(nearestRoom);
+        } else {
+          root.style.setProperty("--progress", getScrollProgress().toFixed(5));
+        }
+
+        ringX += (pointerX - ringX) * 0.16;
+        ringY += (pointerY - ringY) * 0.16;
+        cursorRing.style.transform = `translate(${ringX}px, ${ringY}px) translate(-50%, -50%)`;
+
+        rafId = requestAnimationFrame(render);
+      }
+
+      function syncScroll() {
+        targetProgress = getScrollProgress();
+
+        if (window.matchMedia("(max-width: 900px)").matches) {
+          const center = window.scrollY + window.innerHeight * 0.5;
+          let closest = 0;
+          let closestDistance = Infinity;
+          rooms.forEach((room, index) => {
+            const roomCenter = room.offsetTop + room.offsetHeight * 0.5;
+            const distance = Math.abs(center - roomCenter);
+            if (distance < closestDistance) {
+              closestDistance = distance;
+              closest = index;
+            }
+          });
+          setActiveRoom(closest);
+        }
+      }
+
+      function scrollToRoom(index) {
+        const safeIndex = clamp(Number(index) || 0, 0, roomCount - 1);
+        if (window.matchMedia("(min-width: 901px)").matches) {
+          const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+          window.scrollTo({ top: maxScroll * (safeIndex / (roomCount - 1)), behavior: "smooth" });
+        } else {
+          rooms[safeIndex].scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+
+      window.addEventListener("scroll", syncScroll, { passive: true });
+      window.addEventListener("resize", syncScroll);
+
+      navButtons.forEach(button => button.addEventListener("click", () => scrollToRoom(button.dataset.room)));
+      roomLinks.forEach(link => link.addEventListener("click", event => {
+        event.preventDefault();
+        scrollToRoom(link.dataset.roomLink);
+      }));
+
+      window.addEventListener("pointermove", event => {
+        pointerX = event.clientX;
+        pointerY = event.clientY;
+        const normalizedX = (event.clientX / window.innerWidth - 0.5) * 2;
+        const normalizedY = (event.clientY / window.innerHeight - 0.5) * 2;
+        root.style.setProperty("--mx", normalizedX.toFixed(3));
+        root.style.setProperty("--my", normalizedY.toFixed(3));
+        root.style.setProperty("--ambient-x", `${50 + normalizedX * 12}%`);
+        root.style.setProperty("--ambient-y", `${38 + normalizedY * 10}%`);
+        root.style.setProperty("--hero-x", `${normalizedX * -10}px`);
+        root.style.setProperty("--hero-y", `${normalizedY * -8}px`);
+        root.style.setProperty("--house-rx", `${-7 + normalizedY * 2}deg`);
+        root.style.setProperty("--house-ry", `${-14 + normalizedX * 5}deg`);
+        root.style.setProperty("--panel-x", `${normalizedX * 7}px`);
+        root.style.setProperty("--panel-y", `${normalizedY * 7}px`);
+        root.style.setProperty("--panel-ry", `${normalizedX * -1.5}deg`);
+        root.style.setProperty("--gallery-rx", `${normalizedY * -1}deg`);
+        root.style.setProperty("--gallery-ry", `${normalizedX * 1.6}deg`);
+        root.style.setProperty("--model-rx", `${normalizedY * -5}deg`);
+        root.style.setProperty("--model-ry", `${normalizedX * 10}deg`);
+        root.style.setProperty("--model-ry-plus", `${14 + normalizedX * 10}deg`);
+        root.style.setProperty("--lounge-ry", `${normalizedX * -2}deg`);
+        root.style.setProperty("--lounge-rx", `${normalizedY}deg`);
+        cursorDot.style.transform = `translate(${event.clientX}px, ${event.clientY}px) translate(-50%, -50%)`;
+        cursorDot.style.opacity = "1";
+        cursorRing.style.opacity = "1";
+      });
+
+      document.querySelectorAll("a, button, .painting, .project-pod, .focus-node, .stat-object").forEach(element => {
+        element.addEventListener("pointerenter", () => cursorRing.classList.add("is-hovering"));
+        element.addEventListener("pointerleave", () => cursorRing.classList.remove("is-hovering"));
+      });
+
+      document.querySelectorAll(".dust").forEach((dust, roomIndex) => {
+        const amount = window.matchMedia("(max-width: 900px)").matches ? 14 : 28;
+        for (let i = 0; i < amount; i += 1) {
+          const particle = document.createElement("span");
+          particle.style.left = `${Math.random() * 100}%`;
+          particle.style.top = `${Math.random() * 100}%`;
+          particle.style.setProperty("--d", `${6 + Math.random() * 9}s`);
+          particle.style.setProperty("--delay", `${-Math.random() * 12}s`);
+          particle.style.opacity = String(0.25 + Math.random() * 0.55);
+          particle.style.transform = `scale(${0.5 + Math.random() * 1.5})`;
+          dust.appendChild(particle);
+        }
+      });
+
+      syncScroll();
+      cancelAnimationFrame(rafId);
+      render();
+    })();
+  </script>
+</body>
+</html>
